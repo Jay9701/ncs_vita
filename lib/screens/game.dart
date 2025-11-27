@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:ncs_vita/screens/setting.dart';
-import 'game.dart';
+import 'package:ncs_vita/screens/pause.dart';
+import 'package:ncs_vita/screens/result.dart';
 
-class Home extends StatefulWidget {
-  const Home({super.key});
+class Game extends StatefulWidget {
+  const Game({super.key});
 
   @override
-  State<Home> createState() => _HomeState();
+  State<Game> createState() => _GameState();
 }
 
-class _HomeState extends State<Home> {
+class _GameState extends State<Game> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Home")),
+      appBar: AppBar(title: const Text("Game")),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -22,30 +22,25 @@ class _HomeState extends State<Home> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const Game())
+                  MaterialPageRoute(builder: (context) => const Pause())
                 );
               },
-              child: Text("연습 모드"),
+              child: Text("정지"),
             ),
             SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const Game())
+                  MaterialPageRoute(builder: (context) => const Result())
                 );
               },
-              child: Text("검정 시작"),
+              child: Text("결과"),
             ),
             SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const Setting())
-                );
-              },
-              child: Text("환경 설정"),
+              onPressed: () {build(context);},
+              child: Text("function"),
             ),
           ],
         )

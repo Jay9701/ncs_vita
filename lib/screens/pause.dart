@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:ncs_vita/screens/home.dart';
+import 'package:ncs_vita/screens/game.dart';
 
-class Play extends StatefulWidget {
-  const Play({super.key});
+class Pause extends StatelessWidget {
+  const Pause({super.key});
 
-  @override
-  State<Play> createState() => _PlayState();
-}
-
-class _PlayState extends State<Play> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Play")),
+      appBar: AppBar(title: const Text("Pause")),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -21,12 +17,22 @@ class _PlayState extends State<Play> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const Home())
+                  MaterialPageRoute(builder: (context) => const Game())
                 );
               },
-              child: Text("홈"),
+              child: Text("계속"),
             ),
-            SizedBox(height: 16,),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const Game())
+                );
+              },
+              child: Text("재시도"),
+            ),
+            SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -34,19 +40,8 @@ class _PlayState extends State<Play> {
                   MaterialPageRoute(builder: (context) => const Home())
                 );
               },
-              child: Text("정지"),
+              child: Text("홈으로"),
             ),
-            SizedBox(height: 16,),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const Home())
-                );
-              },
-              child: Text("결과"),
-            ),
-            SizedBox(height: 16,),
           ],
         )
       ),
