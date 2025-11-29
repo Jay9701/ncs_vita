@@ -15,10 +15,7 @@ class Pause extends StatelessWidget {
           children: [
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const Game())
-                );
+                Navigator.pop(context);
               },
               child: Text("계속"),
             ),
@@ -27,7 +24,7 @@ class Pause extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const Game())
+                  MaterialPageRoute(builder: (context) => const Game()),
                 );
               },
               child: Text("재시도"),
@@ -37,13 +34,13 @@ class Pause extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const Home())
+                  MaterialPageRoute(builder: (context) => const Home()),
                 );
               },
               child: Text("홈으로"),
             ),
           ],
-        )
+        ),
       ),
     );
   }
