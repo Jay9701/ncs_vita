@@ -1,18 +1,27 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:ncs_vita/screens/pause.dart';
+import 'package:ncs_vita/models/game_config.dart';
+import 'package:ncs_vita/models/game_result.dart';
+import 'package:ncs_vita/screens/modal/pause.dart';
 import 'package:ncs_vita/screens/result.dart';
 import 'package:ncs_vita/utils/question.dart';
 
 class Game extends StatefulWidget {
-  const Game({super.key});
+  final GameConfig config;
+
+  const Game({super.key, required this.config});
 
   @override
   State<Game> createState() => _GameState();
 }
 
 class _GameState extends State<Game> {
-  late FractionPair currentProblem;
-  bool? isCorrect; // 최근 결과 (null: 아직 선택 안 함)
+  late FractionPair _question; // 현재 문제정보
+  bool? _isCorrect; // 최근 결과 (null: 아직 선택 안 함)
+  int _currentIdx = 0; // 현재 문항 수
+  int _correctCnt = 0; // 정답 갯수
+
+  bool _isPaused = false;
 
   @override
   void initState() {
@@ -22,36 +31,60 @@ class _GameState extends State<Game> {
 
   void _newQuestion() {
     setState(() {
-      currentProblem = generateFractionPair(minDiff: 0.3, maxDiff: 2);
+      _currentIdx++;
+      _question = generateFractionPair(minDiff: 0.3, maxDiff: 2);
     });
   }
 
+  bool get isFinished {
+    final count = widget.config.count;
+    if (count == null) return false; // 무제한
+    return _currentIdx >= count;
+  }
+
   void _onSelect(int index) {
-    final first = currentProblem.first;
-    final second = currentProblem.second;
+    final first = _question.first;
+    final second = _question.second;
 
     // 분수 크기 비교 (double 캐스팅)
     final firstValue = first.num / first.den;
     final secondValue = second.num / second.den;
 
-    final correctIndex = firstValue > secondValue ? 0 : 1;
-    final selectedCorrect = index == correctIndex;
+    final answer = firstValue > secondValue ? 0 : 1;
+    final selectedCorrect = index == answer;
+    if (selectedCorrect) _correctCnt++;
+    if (isFinished) return _endGame();
 
     setState(() {
-      isCorrect = selectedCorrect;
+      _isCorrect = selectedCorrect;
     });
 
-    // 일단은 스낵바로 피드백
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(selectedCorrect ? '정답!' : '오답 😅'),
-        duration: const Duration(milliseconds: 600),
-      ),
-    );
     _newQuestion();
+  }
 
-    // 정답/오답 상관없이 다음 문제 자동으로 넘기고 싶으면:
-    // Future.delayed(const Duration(milliseconds: 600), _newQuestion);
+  void _pause() {
+    setState(() {
+      _isPaused = true;
+    });
+  }
+
+  void _resume() {
+    setState(() {
+      _isPaused = false;
+    });
+  }
+
+  void _endGame() {
+    final result = GameResult(
+      config: widget.config,
+      currentIdx: _currentIdx,
+      correctCnt: _correctCnt,
+    );
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => Result(result: result)),
+    );
   }
 
   Widget _buildFractionButton({
@@ -82,79 +115,118 @@ class _GameState extends State<Game> {
 
   @override
   Widget build(BuildContext context) {
-    final first = currentProblem.first;
-    final second = currentProblem.second;
+    final first = _question.first;
+    final second = _question.second;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Game")),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // 문제 영역
-            Row(
+      appBar: AppBar(title: Text('level::: ${widget.config.level}')),
+      body: Stack(
+        children: [
+          Center(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildFractionButton(
-                  index: 0,
-                  numerator: first.num,
-                  denominator: first.den,
+                // 문제 영역
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildFractionButton(
+                      index: 0,
+                      numerator: first.num,
+                      denominator: first.den,
+                    ),
+                    const SizedBox(width: 16),
+                    _buildFractionButton(
+                      index: 1,
+                      numerator: second.num,
+                      denominator: second.den,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                _buildFractionButton(
-                  index: 1,
-                  numerator: second.num,
-                  denominator: second.den,
+                const SizedBox(height: 16),
+                if (_isCorrect != null)
+                  Text(
+                    _isCorrect! ? '정답 ✅' : '오답 ❌',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: _isCorrect! ? Colors.green : Colors.red,
+                    ),
+                  ),
+                const SizedBox(height: 24),
+                // 다음 문제 버튼 (디버깅용 / 수동)
+                ElevatedButton(
+                  onPressed: () {
+                    _isCorrect = null;
+                    _newQuestion();
+                  },
+                  child: const Text("다음 문제"),
                 ),
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  onPressed: () {
+                    _pause();
+                  },
+                  child: Text("정지"),
+                ),
+                SizedBox(height: 16),
               ],
             ),
-            const SizedBox(height: 16),
-            if (isCorrect != null)
-              Text(
-                isCorrect! ? '정답 ✅' : '오답 ❌',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: isCorrect! ? Colors.green : Colors.red,
+          ),
+          // 2) 일시정지 오버레이
+          if (_isPaused)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black54, // 배경 dim
+                child: Center(
+                  child: Pause(
+                    onResume: _resume,
+                    onExit: () {
+                      // 정지상태에서 종료시 현재 진행중이던 문제는 제외하고 결과처리
+                      _currentIdx--;
+                      _endGame();
+                    },
+                  ),
                 ),
               ),
-            const SizedBox(height: 24),
-            // 다음 문제 버튼 (디버깅용 / 수동)
-            ElevatedButton(
-              onPressed: () {
-                isCorrect = null;
-                _newQuestion();
-              },
-              child: const Text("다음 문제"),
             ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const Pause()),
-                );
-              },
-              child: Text("정지"),
+          // 3) 디버그 오버레이
+          if (kDebugMode)
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: DefaultTextStyle(
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'DEBUG',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.yellow,
+                        ),
+                      ),
+                      Text('level: ${widget.config.level}'),
+                      Text('count: ${widget.config.count}'),
+                      Text('currentIdx: $_currentIdx'),
+                      Text('correctCnt: $_correctCnt'),
+                      Text('first: ${first.num}/${first.den}'),
+                      Text('second: ${second.num}/${second.den}'),
+                      Text('isCorrect: $_isCorrect'),
+                      Text('isFinished: $isFinished'),
+                      // 타이머 쓰면 여기에 남은 시간 같은 것도 추가
+                    ],
+                  ),
+                ),
+              ),
             ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const Result()),
-                );
-              },
-              child: Text("결과"),
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                _newQuestion();
-              },
-              child: Text("function"),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }

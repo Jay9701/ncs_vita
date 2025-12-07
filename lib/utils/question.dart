@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
+
 class Fraction {
   final int num;
   final int den;
@@ -54,11 +56,14 @@ FractionPair generateFractionPair({
     final f1 = Fraction(a, b);
     final f2 = Fraction(c, d);
 
-    if (sign == 1)
-      print("right");
-    else
-      print("left");
-    print(diff * sign);
+    if (kDebugMode) {
+      if (sign == 1) {
+        print("right");
+      } else {
+        print("left");
+      }
+      print(diff * sign);
+    }
 
     return FractionPair(f1, f2);
   }

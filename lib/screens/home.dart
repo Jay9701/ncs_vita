@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ncs_vita/models/game_config.dart';
 import 'package:ncs_vita/screens/setting.dart';
 import 'game.dart';
 
@@ -13,7 +14,6 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Home")),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -22,7 +22,9 @@ class _HomeState extends State<Home> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const Game())
+                  MaterialPageRoute(
+                    builder: (context) => Game(config: const GameConfig()),
+                  ),
                 );
               },
               child: Text("연습 모드"),
@@ -32,7 +34,10 @@ class _HomeState extends State<Home> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const Game())
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        Game(config: const GameConfig().set(level: 4)),
+                  ),
                 );
               },
               child: Text("검정 시작"),
@@ -42,13 +47,13 @@ class _HomeState extends State<Home> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const Setting())
+                  MaterialPageRoute(builder: (context) => const Setting()),
                 );
               },
               child: Text("환경 설정"),
             ),
           ],
-        )
+        ),
       ),
     );
   }

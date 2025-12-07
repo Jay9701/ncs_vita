@@ -1,41 +1,85 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:ncs_vita/models/game_config.dart';
+import 'package:ncs_vita/models/game_result.dart';
 import 'package:ncs_vita/screens/home.dart';
 import 'package:ncs_vita/screens/game.dart';
 
 class Result extends StatelessWidget {
-  const Result({super.key});
+  final GameResult result;
+
+  const Result({super.key, required this.result});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Result")),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const Game())
-                );
-              },
-              child: Text("재도전"),
+      body: Stack(
+        children: [
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Game(config: const GameConfig()),
+                      ),
+                    );
+                  },
+                  child: Text("재도전"),
+                ),
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const Home()),
+                    );
+                  },
+                  child: Text("나가기"),
+                ),
+                SizedBox(height: 16),
+              ],
             ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const Home())
-                );
-              },
-              child: Text("나가기"),
+          ),
+          // 2) 디버그 오버레이
+          if (kDebugMode)
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: DefaultTextStyle(
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'DEBUG',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.yellow,
+                        ),
+                      ),
+                      Text('count: ${result.config.count}'),
+                      Text('currentidx: ${result.currentIdx}'),
+                      Text('correctCnt: ${result.correctCnt}'),
+                      Text('accuracy: ${result.accuracy}'),
+                      Text('accuracyStr: ${result.accuracyStr}'),
+                      Text('wrongCnt: ${result.wrongCnt}'),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            SizedBox(height: 16),
-          ]
-        )
-      )
+        ],
+      ),
     );
   }
 }
