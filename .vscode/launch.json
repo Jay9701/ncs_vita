@@ -1,0 +1,48 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "ncs_vita",
+      "request": "launch",
+      "type": "dart"
+    },
+    {
+      "name": "ncs_vita (profile mode)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile"
+    },
+    {
+      "name": "ncs_vita (release mode)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release"
+    },
+
+    {
+      "name": "Galaxy S23 (390*780)",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--web-port=8080",
+      ],
+      "toolArgs": [
+        "--web-browser-flag=--app=http://localhost:8080/",
+        "--web-browser-flag=--window-size=390,780"
+      ]
+    },
+
+    {
+      "name": "iPhone 14 Pro (393*852)",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--web-port=8080",
+      ],
+      "toolArgs": [
+        "--web-browser-flag=--app=http://localhost:8080/",
+        "--web-browser-flag=--window-size=393,852"
+      ]
+    }
+  ]
+}

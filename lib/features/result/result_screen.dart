@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:ncs_vita/models/game_config.dart';
-import 'package:ncs_vita/models/game_result.dart';
-import 'package:ncs_vita/screens/home.dart';
-import 'package:ncs_vita/screens/game.dart';
+import 'package:ncs_vita/features/game/models/game_config.dart';
+import 'package:ncs_vita/features/game/models/game_result.dart';
+import 'package:ncs_vita/features/home/home_screen.dart';
+import 'package:ncs_vita/features/game/game_screen.dart';
 
 class Result extends StatelessWidget {
   final GameResult result;

@@ -37,7 +37,7 @@ class FractionPair {
 FractionPair generateFractionPair({
   required double minDiff,
   required double maxDiff,
-  int maxDen = 999,
+  required int maxDen,
   Random? random,
 }) {
   final rnd = random ?? Random();
@@ -56,15 +56,16 @@ FractionPair generateFractionPair({
     final f1 = Fraction(a, b);
     final f2 = Fraction(c, d);
 
+    FractionPair fractionPair = FractionPair(f1, f2);
+
     if (kDebugMode) {
       if (sign == 1) {
-        print("right");
+        debugPrint('<');
       } else {
-        print("left");
+        debugPrint('>');
       }
-      print(diff * sign);
     }
 
-    return FractionPair(f1, f2);
+    return fractionPair;
   }
 }
