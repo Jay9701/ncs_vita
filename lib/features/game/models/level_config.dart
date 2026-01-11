@@ -1,9 +1,9 @@
 class DiffRange {
   final double minDiff;
   final double maxDiff;
-  final int maxDen;
+  final int maxVal;
 
-  const DiffRange(this.minDiff, this.maxDiff, this.maxDen);
+  const DiffRange(this.minDiff, this.maxDiff, this.maxVal);
 }
 
 DiffRange getLevelConfig(int level) {
@@ -11,7 +11,7 @@ DiffRange getLevelConfig(int level) {
 }
 
 const Map<int, DiffRange> levelDiffTable = {
-  1: DiffRange(0.9, 1.0, 99),
+  1: DiffRange(0.9, 0.99, 99),
   2: DiffRange(0.8, 0.9, 99),
   3: DiffRange(0.7, 0.8, 999),
   4: DiffRange(0.6, 0.7, 999),

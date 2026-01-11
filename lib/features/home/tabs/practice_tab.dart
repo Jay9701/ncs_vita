@@ -15,8 +15,9 @@ class _PracticeState extends State<Practice> {
 
   void _prevLevel() {
     setState(() {
-      int next = (config.level - 1).clamp(1, 10);
-      config = config.copyWith(level: next);
+      int prev = (config.level - 1).clamp(1, 10);
+      config = config.copyWith(level: prev);
+      debugPrint('config::: ${config.level}');
     });
   }
 
@@ -25,6 +26,38 @@ class _PracticeState extends State<Practice> {
       int next = (config.level + 1).clamp(1, 10);
       config = config.copyWith(level: next);
       debugPrint('config::: ${config.level}');
+    });
+  }
+
+  void _prevCount() {
+    setState(() {
+      int prev = (config.count - 1).clamp(10, 30);
+      config = config.copyWith(count: prev);
+      debugPrint('config::: ${config.count}');
+    });
+  }
+
+  void _nextCount() {
+    setState(() {
+      int next = (config.count + 1).clamp(10, 30);
+      config = config.copyWith(count: next);
+      debugPrint('config::: ${config.count}');
+    });
+  }
+
+  void _prevType() {
+    setState(() {
+      GameType prev = config.type.prev;
+      config = config.copyWith(type: prev);
+      debugPrint('config::: ${config.type}');
+    });
+  }
+
+  void _nextType() {
+    setState(() {
+      GameType next = config.type.next;
+      config = config.copyWith(type: next);
+      debugPrint('config::: ${config.type}');
     });
   }
 
@@ -44,61 +77,137 @@ class _PracticeState extends State<Practice> {
               onTap: () {
                 widget.onStart(config);
               },
-              child: Center(child: Text('분수 비교')),
+              child: Center(child: Text('연습 시작')),
             ),
           ),
 
           const SizedBox(height: 16),
 
           // ===== 하단 카드 그리드 =====
-          GridView.count(
-            shrinkWrap: true, // ⭐ 핵심
-            physics: const NeverScrollableScrollPhysics(), // ⭐ 핵심
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.6,
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               AppCard(
                 onTap: () {},
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start, // ⭐ 핵심
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: 15),
-                    Center(child: Text('난이도')),
+                    Center(child: Text('유형')),
                     SizedBox(height: 15),
                     Center(
                       child: Row(
-                        mainAxisSize: MainAxisSize.min, // ⭐ 중요
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.arrow_left),
-                          TextButton(
-                            onPressed: _nextLevel,
-                            child: Text(
-                              '${config.level}',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
+                          IconButton(
+                            icon: Icon(Icons.arrow_left),
+                            onPressed: _prevType,
+                            // 아이콘 크기나 색상을 바꾸고 싶을 때
+                            iconSize: 30,
+                            color: Colors.blue,
+                          ),
+                          Text(
+                            '${config.type.label}',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
-                          Icon(Icons.arrow_right),
+                          IconButton(
+                            icon: Icon(Icons.arrow_right),
+                            onPressed: _nextType,
+                            // 아이콘 크기나 색상을 바꾸고 싶을 때
+                            iconSize: 30,
+                            color: Colors.blue,
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(height: 16),
               AppCard(
                 onTap: () {},
-                child: Center(child: Text('문항수')),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 15),
+                    Center(child: Text('난이도')),
+                    SizedBox(height: 15),
+                    Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.arrow_left),
+                            onPressed: _prevLevel,
+                            // 아이콘 크기나 색상을 바꾸고 싶을 때
+                            iconSize: 30,
+                            color: Colors.blue,
+                          ),
+                          Text(
+                            '${config.level}',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.arrow_right),
+                            onPressed: _nextLevel,
+                            // 아이콘 크기나 색상을 바꾸고 싶을 때
+                            iconSize: 30,
+                            color: Colors.blue,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(height: 16),
+              AppCard(
+                onTap: () {},
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 15),
+                    Center(child: Text('문항수')),
+                    SizedBox(height: 15),
+                    Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.arrow_left),
+                            onPressed: _prevCount,
+                            // 아이콘 크기나 색상을 바꾸고 싶을 때
+                            iconSize: 30,
+                            color: Colors.blue,
+                          ),
+                          Text(
+                            '${config.count}',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.arrow_right),
+                            onPressed: _nextCount,
+                            // 아이콘 크기나 색상을 바꾸고 싶을 때
+                            iconSize: 30,
+                            color: Colors.blue,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               AppCard(
                 onTap: () {},
                 child: Center(child: Text('타이머')),
-              ),
-              AppCard(
-                onTap: () {},
-                child: Center(child: Text('난이도')),
               ),
             ],
           ),

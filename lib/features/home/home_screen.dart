@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ncs_vita/features/game/models/game_config.dart';
 import 'package:ncs_vita/features/game/game_screen.dart';
 import 'package:ncs_vita/features/home/tabs/practice_tab.dart';
+import 'package:ncs_vita/features/home/tabs/sample_tab.dart';
 import 'package:ncs_vita/features/home/tabs/setting_tab.dart';
 
 class Home extends StatefulWidget {
@@ -18,7 +19,7 @@ class _HomeState extends State<Home> {
   late final List<Widget> _tabs = [
     Practice(onStart: (config) => _startGame(config)),
     const ExamTab(),
-    const ProfileTab(),
+    SampleTab(),
     const Setting(), // setting.dart에 Setting 위젯이 있다고 가정
   ];
 

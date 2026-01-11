@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
+import 'package:ncs_vita/features/game/models/table_data.dart';
 
 class Fraction {
   final int num;
@@ -34,38 +35,43 @@ class FractionPair {
       (first.toDouble() - second.toDouble()).abs() / first.toDouble();
 }
 
-FractionPair generateFractionPair({
-  required double minDiff,
-  required double maxDiff,
-  required int maxDen,
-  Random? random,
-}) {
-  final rnd = random ?? Random();
+class MultiplicationPair {
+  final int a, b, c, d;
+  MultiplicationPair(this.a, this.b, this.c, this.d);
 
-  while (true) {
-    final diff = minDiff + rnd.nextDouble() * (maxDiff - minDiff);
-    final sign = rnd.nextBool() ? 1 : -1;
-    final a = rnd.nextInt(maxDen - 1) + 2; // [2, maxDen]
-    final b = rnd.nextInt(maxDen - 1) + 2; // [2, maxDen]
-    final d = rnd.nextInt(maxDen - 1) + 2; // [2, maxDen]
-    final c = (a * d * (1 + diff * sign) / b).ceil();
+  int get firstProduct => a * b;
+  int get secondProduct => c * d;
+}
 
-    if (b == d) continue;
-    if (c < 1 || c > 999) continue;
+class AdditionSet {
+  final List<int> nums;
+  final int sum;
+  final int hIdx;
 
-    final f1 = Fraction(a, b);
-    final f2 = Fraction(c, d);
+  AdditionSet(this.nums, this.sum, this.hIdx);
+}
 
-    FractionPair fractionPair = FractionPair(f1, f2);
+class TableHole {
+  final int row;
+  final int col;
+  final int originalValue; // 정답
+  int? userInput; // 사용자 입력값
 
-    if (kDebugMode) {
-      if (sign == 1) {
-        debugPrint('<');
-      } else {
-        debugPrint('>');
-      }
-    }
+  TableHole({
+    required this.row,
+    required this.col,
+    required this.originalValue,
+  });
 
-    return fractionPair;
-  }
+  bool get isCorrect => originalValue == userInput;
+}
+
+class TableProblem {
+  final GeneratedTable table; // 원본 표 데이터
+  final List<TableHole> holes; // 가려진 칸들의 정보
+
+  TableProblem({required this.table, required this.holes});
+
+  // 모든 구멍이 다 채워졌고 정답인지 확인
+  bool get isAllCorrect => holes.every((h) => h.isCorrect);
 }
