@@ -1,4 +1,4 @@
-import 'package:ncs_vita/models/game_config.dart';
+import 'package:ncs_vita/features/game/models/game_config.dart';
 
 class GameResult {
   final GameConfig config;
