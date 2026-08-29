@@ -95,22 +95,9 @@ class _GameState extends State<Game> {
               children: [
                 Column(
                   children: [
-                    const Spacer(),
-                    Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // 문제 영역
-                          SizedBox(
-                            height: 210,
-                            child: Center(child: _buildModeWidget()),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                      ),
-                    ),
-                    const Spacer(),
-                    const SizedBox(height: 60), // 광고 영역 확보
+                    const SizedBox(height: 60),
+                    Expanded(child: _buildModeWidget()),
+                    const SizedBox(height: 60),
                   ],
                 ),
 
