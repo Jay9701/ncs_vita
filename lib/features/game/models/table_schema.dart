@@ -1,7 +1,4 @@
-import 'dart:math';
-import 'package:flutter/material.dart';
-
-enum TableId { IP001, IP002, IP003, IP004 }
+enum TableSummary { sum, average }
 
 class IndependentSchema {
   final String dsc;
@@ -11,6 +8,8 @@ class IndependentSchema {
   final String unit;
   final Map<String, dynamic> row;
   final Map<String, dynamic> col;
+  final TableSummary? rowSummary;
+  final TableSummary? columnSummary;
 
   IndependentSchema({
     required this.dsc,
@@ -20,6 +19,8 @@ class IndependentSchema {
     required this.unit,
     required this.row,
     required this.col,
+    this.rowSummary,
+    this.columnSummary,
   });
 }
 
@@ -35,6 +36,8 @@ final Map<String, IndependentSchema> masterDatasets = {
       'labels': ["국어", "영어", "수학", "과학", "사회"],
     },
     col: {'auto': true, 'suffix': "반", 'type': "number"},
+    rowSummary: TableSummary.sum,
+    columnSummary: TableSummary.average,
   ),
   'IP002': IndependentSchema(
     dsc: "지역별 지출액",
@@ -47,6 +50,8 @@ final Map<String, IndependentSchema> masterDatasets = {
       'labels': ["식비", "교통비", "문화비", "기타"],
     },
     col: {'auto': true, 'suffix': "지역", 'type': "letter"},
+    rowSummary: TableSummary.sum,
+    columnSummary: TableSummary.sum,
   ),
   'IP003': IndependentSchema(
     dsc: "창고별 재고량",
@@ -59,6 +64,8 @@ final Map<String, IndependentSchema> masterDatasets = {
       'labels': ["TV", "냉장고", "세탁기", "에어컨", "건조기"],
     },
     col: {'auto': true, 'suffix': "창고", 'type': "number"},
+    rowSummary: TableSummary.sum,
+    columnSummary: TableSummary.sum,
   ),
   'IP004': IndependentSchema(
     dsc: "개인별 운동 시간",
@@ -71,6 +78,8 @@ final Map<String, IndependentSchema> masterDatasets = {
       'labels': ["1주차", "2주차", "3주차", "4주차"],
     },
     col: {'auto': true, 'suffix': "", 'type': "name"},
+    rowSummary: TableSummary.average,
+    columnSummary: TableSummary.average,
   ),
 };
 

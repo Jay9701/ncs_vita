@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ncs_vita/features/game/models/game_config.dart';
 import 'package:ncs_vita/features/game/game_screen.dart';
+import 'package:ncs_vita/features/home/tabs/exam_tab.dart';
 import 'package:ncs_vita/features/home/tabs/practice_tab.dart';
 import 'package:ncs_vita/features/home/tabs/sample_tab.dart';
 import 'package:ncs_vita/features/home/tabs/setting_tab.dart';
@@ -23,8 +24,7 @@ class _HomeState extends State<Home> {
     const Setting(), // setting.dart에 Setting 위젯이 있다고 가정
   ];
 
-  void _startGame(config) {
-    // TODO: 나중에 mode/level 같은 config를 여기서 만들어서 넘기면 됨.
+  void _startGame(GameConfig config) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => Game(config: config)),
@@ -33,36 +33,58 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textScale = MediaQuery.textScalerOf(context);
+
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: IndexedStack(index: _index, children: _tabs),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _index,
-        onTap: (i) => setState(() => _index = i),
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.school_outlined),
-            activeIcon: Icon(Icons.school),
-            label: '연습',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.timer_outlined),
-            activeIcon: Icon(Icons.timer),
-            label: '검정',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: '내정보',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            activeIcon: Icon(Icons.settings),
-            label: '설정',
-          ),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: colors.surface,
+          boxShadow: [
+            BoxShadow(
+              color: colors.shadow.withValues(alpha: 0.18),
+              blurRadius: 12,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _index,
+          onTap: (i) => setState(() => _index = i),
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: colors.surface,
+          selectedItemColor: colors.primary,
+          unselectedItemColor: colors.onSurface.withValues(alpha: 0.6),
+          selectedFontSize: textScale.scale(12).clamp(11.0, 14.0),
+          unselectedFontSize: textScale.scale(12).clamp(11.0, 14.0),
+          elevation: 0,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.school_outlined),
+              activeIcon: Icon(Icons.school),
+              label: '연습',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.timer_outlined),
+              activeIcon: Icon(Icons.timer),
+              label: '검정',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: '내정보',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings_outlined),
+              activeIcon: Icon(Icons.settings),
+              label: '설정',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -70,30 +92,3 @@ class _HomeState extends State<Home> {
 
 /// 게임 시작 타입(연습/검정) 구분용
 enum PlayType { practice, exam }
-
-/// ------------------------------
-/// 아래는 "탭 화면" placeholder.
-/// 너가 이미 탭 화면을 따로 만들 생각이면 파일로 빼도 됨.
-/// ------------------------------
-
-class ExamTab extends StatelessWidget {
-  const ExamTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: ElevatedButton(onPressed: () {}, child: const Text('검정 시작')),
-      ),
-    );
-  }
-}
-
-class ProfileTab extends StatelessWidget {
-  const ProfileTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('내정보(추후 구현)')));
-  }
-}

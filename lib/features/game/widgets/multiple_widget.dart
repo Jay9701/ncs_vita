@@ -31,11 +31,13 @@ class _MultipleWidgetState extends State<MultipleWidget> {
   }
 
   void _newQuestion() {
-    final cfg = getLevelConfig(widget.level);
+    final config = getMultiplicationConfig(widget.level);
     _q = GameService.generateMultiplicationPair(
-      minDiff: cfg.minDiff,
-      maxDiff: cfg.maxDiff,
-      maxVal: cfg.maxVal,
+      minDiff: config.minDiff,
+      maxDiff: config.maxDiff,
+      minBase: config.minBase,
+      maxBase: config.maxBase,
+      allowDecimal: config.allowDecimal,
     );
     setState(() {});
   }
@@ -44,11 +46,7 @@ class _MultipleWidgetState extends State<MultipleWidget> {
     if (_showResult) return; // 이미 결과 보여주는 중이면 중복 클릭 방지
 
     setState(() {
-      // final a = _q.first.num / _q.first.den;
-      // final b = _q.second.num / _q.second.den;
-      final a = _q.a * _q.b;
-      final b = _q.c * _q.d;
-      _isCorrect = selected == (a > b ? 0 : 1);
+      _isCorrect = selected == (_q.firstProduct > _q.secondProduct ? 0 : 1);
       _selectedIndex = selected; // 1. 내가 누른 게 뭔지 저장
       _showResult = true; // 2. 이제 색깔 보여줘! 라고 신호 보냄
     });
@@ -61,7 +59,7 @@ class _MultipleWidgetState extends State<MultipleWidget> {
 
   @override
   Widget build(BuildContext context) {
-    Color? _getCardColor(int index) {
+    Color? getCardColor(int index) {
       if (!_showResult || _selectedIndex != index) {
         return null; // 아직 안 눌렀거나 내가 누른 게 아니면 투명
       }
@@ -71,38 +69,68 @@ class _MultipleWidgetState extends State<MultipleWidget> {
       return _isCorrect ? Colors.green : Colors.red;
     }
 
-    return Row(
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const SizedBox(width: 32),
-        Expanded(
-          child: QCard(
-            onTap: () => _onSelect(0),
-            borderColor: _getCardColor(0), // 여기서 실시간으로 색 결정
-            child: _MultiplicationUi(num1: _q.a, num2: _q.b),
-          ),
+        Text(
+          '더 큰 값을 선택하세요',
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(width: 32),
-        Expanded(
-          child: QCard(
-            onTap: () => _onSelect(1),
-            borderColor: _getCardColor(1), // 여기서 실시간으로 색 결정
-            child: _MultiplicationUi(num1: _q.c, num2: _q.d),
-          ),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            const SizedBox(width: 12),
+            Expanded(
+              child: QCard(
+                onTap: () => _onSelect(0),
+                borderColor: getCardColor(0),
+                child: _MultiplicationUi(
+                  base: _q.firstBase,
+                  rate: _q.firstRateLabel,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: QCard(
+                onTap: () => _onSelect(1),
+                borderColor: getCardColor(1),
+                child: _MultiplicationUi(
+                  base: _q.secondBase,
+                  rate: _q.secondRateLabel,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
         ),
-        const SizedBox(width: 32),
       ],
     );
   }
 }
 
 class _MultiplicationUi extends StatelessWidget {
-  final int num1;
-  final int num2;
+  final int base;
+  final String rate;
 
-  const _MultiplicationUi({required this.num1, required this.num2});
+  const _MultiplicationUi({required this.base, required this.rate});
 
   @override
   Widget build(BuildContext context) {
-    return Text('$num1 x $num2');
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        '$base × $rate',
+        maxLines: 1,
+        style: TextStyle(
+          fontSize: MediaQuery.textScalerOf(
+            context,
+          ).scale(26).clamp(22.0, 28.0),
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
   }
 }

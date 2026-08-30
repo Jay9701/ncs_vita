@@ -2,7 +2,7 @@
 
 import 'dart:math';
 import 'package:flutter/foundation.dart';
-import 'package:ncs_vita/features/game/models/table_data.dart';
+import 'package:ncs_vita/features/game/models/table_schema.dart';
 import 'package:ncs_vita/features/game/services/table_service.dart';
 import '../models/game_question.dart';
 
@@ -15,7 +15,7 @@ class GameService {
     required double maxDiff, // 최대 변화율 ex) 1.0
     required int maxVal, // 최대 자릿수 ex) 999
   }) {
-    while (true) {
+    for (var attempt = 0; attempt < 5000; attempt++) {
       final diff = minDiff + _rnd.nextDouble() * (maxDiff - minDiff);
       final sign = _rnd.nextBool() ? 1 : -1;
       final a = _rnd.nextInt(maxVal - 1) + 2; // [2, maxVal]
@@ -26,13 +26,15 @@ class GameService {
           : (a * d * (1 + diff * sign) / b).floor();
 
       if (b == d) continue; // 두 분모가 같은 경우 다시추출 (비교가 너무 쉬움)
-      if (c < 1 || c > 999) continue; // 비교대상 분자 범위가 기준을 넘어간경우 다시추출
+      if (c < 1 || c > maxVal) continue;
       if (a == b || c == d) continue; // 분자와 분모가 같은 경우 다시추출
 
       final f1 = Fraction(a, b);
       final f2 = Fraction(c, d);
 
-      FractionPair fractionPair = FractionPair(f1, f2);
+      final fractionPair = FractionPair(f1, f2);
+      final actualDiff = fractionPair.relativeDifference;
+      if (actualDiff < minDiff || actualDiff > maxDiff) continue;
 
       if (kDebugMode) {
         if (sign == 1) {
@@ -44,74 +46,79 @@ class GameService {
 
       return fractionPair;
     }
+
+    throw StateError('Unable to generate a valid fraction comparison.');
   }
 
   // === 곱셈 문제 생성 ===
   static MultiplicationPair generateMultiplicationPair({
     required double minDiff,
     required double maxDiff,
-    required int maxVal, // 한 숫자의 최대 크기 (예: 99)
+    required int minBase,
+    required int maxBase,
+    required bool allowDecimal,
   }) {
-    while (true) {
-      // 1. 설정된 범위 내에서 변화율과 부호 결정
+    for (var attempt = 0; attempt < 5000; attempt++) {
       final diff = minDiff + _rnd.nextDouble() * (maxDiff - minDiff);
       final sign = _rnd.nextBool() ? 1 : -1;
+      final firstBase = _rnd.nextInt(maxBase - minBase + 1) + minBase;
+      final firstRateTenths = allowDecimal
+          ? _rnd.nextInt(901) + 100
+          : (_rnd.nextInt(91) + 10) * 10;
+      final secondRateTenths = allowDecimal
+          ? _rnd.nextInt(901) + 100
+          : (_rnd.nextInt(91) + 10) * 10;
+      final firstProduct = firstBase * firstRateTenths;
+      final targetProduct = firstProduct * (1 + diff * sign);
+      final secondBase = (targetProduct / secondRateTenths).round();
 
-      // 2. A, B, D를 먼저 랜덤으로 결정 (두 자릿수 연산 기준: 11~maxVal)
-      final a = _rnd.nextInt(maxVal - 10) + 11;
-      final b = _rnd.nextInt(maxVal - 10) + 11;
-      final d = _rnd.nextInt(maxVal - 10) + 11;
-
-      // 3. 목표값 계산 (A * B 대비 의도한 변화율 적용)
-      final double targetVal = (a * b * (1 + diff * sign)) / d;
-
-      // 4. [핵심] 방향성 올림/내림 적용 (부호 뒤집힘 완벽 차단)
-      int c = (sign == 1) ? targetVal.ceil() : targetVal.floor();
-
-      // 5. [안전장치] 정수값이 딱 떨어져서 같아지는 경우 보정
-      if (a * b == c * d) {
-        c += sign;
+      if (secondBase < minBase || secondBase > maxBase) continue;
+      if (firstBase == secondBase || firstRateTenths == secondRateTenths) {
+        continue;
       }
 
-      // 6. 필터링 (바른 자세: 결과값이 유효한 범위인지 확인)
-      if (a == c || b == d) continue; // 숫자가 너무 중복되면 다시 추출
-      if (c < 11 || c > maxVal) continue; // 결과값 C가 범위를 벗어나면 다시 추출
+      final secondProduct = secondBase * secondRateTenths;
+      final actualDiff = (firstProduct - secondProduct).abs() / firstProduct;
+      if (actualDiff < minDiff || actualDiff > maxDiff) continue;
 
-      return MultiplicationPair(a, b, c, d);
+      return MultiplicationPair(
+        firstBase: firstBase,
+        firstRateTenths: firstRateTenths,
+        secondBase: secondBase,
+        secondRateTenths: secondRateTenths,
+      );
     }
+
+    throw StateError('Unable to generate a valid multiplication comparison.');
   }
 
   // === 덧셈 문제 생성 ===
   static AdditionSet generateAddProblem({
     required int len,
     required int maxVal,
+    required double sumBlankProbability,
   }) {
-    final nums = List.generate(len, (_) => _rnd.nextInt(maxVal));
+    final nums = List.generate(len, (_) => _rnd.nextInt(maxVal) + 1);
     final sum = nums.reduce((a, b) => a + b);
-
-    final hIdx = _rnd.nextInt(len + 1);
+    final hIdx = _rnd.nextDouble() < sumBlankProbability
+        ? len
+        : _rnd.nextInt(len);
 
     return AdditionSet(nums, sum, hIdx);
   }
 
-  static TableProblem generateTableProblem(int holeCount) {
-    final random = Random();
-    GeneratedTable table = TableService.generate('IP001', colCount: 3);
-    List<TableHole> holes = [];
+  static TableProblem generateTableProblem() {
+    final schemaIds = masterDatasets.keys.toList();
+    final schemaId = schemaIds[_rnd.nextInt(schemaIds.length)];
+    final table = TableService.generate(schemaId, colCount: 3);
+    final row = _rnd.nextInt(table.rows.length);
+    final column = _rnd.nextInt(table.cols.length);
+    final hole = TableHole(
+      row: row,
+      col: column,
+      originalValue: table.data[row][column],
+    );
 
-    // 중복되지 않게 구멍 뚫기
-    Set<String> chosen = {};
-    while (holes.length < holeCount) {
-      int r = random.nextInt(table.rows.length);
-      int c = random.nextInt(table.cols.length);
-      String key = '$r-$c';
-
-      if (!chosen.contains(key)) {
-        chosen.add(key);
-        holes.add(TableHole(row: r, col: c, originalValue: table.data[r][c]));
-      }
-    }
-
-    return TableProblem(table: table, holes: holes);
+    return TableProblem(table: table, holes: [hole]);
   }
 }

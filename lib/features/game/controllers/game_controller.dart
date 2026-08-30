@@ -20,6 +20,7 @@ class GameController extends ChangeNotifier {
 
   void _initTimer() {
     if (config.timer > 0) {
+      remainingSeconds = config.timer.toDouble();
       timer = TimerController(
         totalTime: Duration(seconds: config.timer),
         onTick: (remain) {

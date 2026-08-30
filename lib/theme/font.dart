@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 class AppFont extends ThemeExtension<AppFont> {
+  final double scale;
   final TextStyle fraction;
   final TextStyle title1;
-  // 추가하고 싶은 이름들...
 
-  AppFont({required this.fraction, required this.title1});
+  AppFont({required this.scale, required this.fraction, required this.title1});
 
   factory AppFont.create(double scale, bool isDark) {
     final baseColor = isDark
@@ -13,11 +13,12 @@ class AppFont extends ThemeExtension<AppFont> {
         : const Color(0xFF1F2937);
 
     return AppFont(
+      scale: scale,
       fraction: TextStyle(
-        fontSize: 32 * scale, // 요청하신 32px 기준
+        fontSize: 32 * scale,
         fontWeight: FontWeight.bold,
         color: baseColor,
-        fontFamily: 'Pretendard', // 사용하는 폰트가 있다면 지정
+        fontFamily: 'Pretendard',
       ),
       title1: TextStyle(
         fontSize: 18 * scale,
@@ -34,13 +35,20 @@ class AppFont extends ThemeExtension<AppFont> {
   ThemeExtension<AppFont> lerp(ThemeExtension<AppFont>? other, double t) {
     if (other is! AppFont) return this;
     return AppFont(
+      scale: scale,
       fraction: TextStyle.lerp(fraction, other.fraction, t)!,
       title1: TextStyle.lerp(title1, other.title1, t)!,
     );
   }
 }
 
-// 편리한 사용을 위한 Extension
 extension AppTextsTheme on BuildContext {
   AppFont get fonts => Theme.of(this).extension<AppFont>()!;
+
+  double get effectiveTextScale {
+    final systemScale = MediaQuery.textScalerOf(this).scale(1.0);
+    return fonts.scale * systemScale;
+  }
+
+  double scaleText(double size) => size * effectiveTextScale;
 }

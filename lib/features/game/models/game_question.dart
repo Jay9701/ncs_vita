@@ -1,6 +1,3 @@
-import 'dart:math';
-
-import 'package:flutter/foundation.dart';
 import 'package:ncs_vita/features/game/models/table_data.dart';
 
 class Fraction {
@@ -31,16 +28,39 @@ class FractionPair {
   final Fraction second;
   FractionPair(this.first, this.second);
 
-  double diff() =>
-      (first.toDouble() - second.toDouble()).abs() / first.toDouble();
+  bool get isFirstGreater => first.num * second.den > second.num * first.den;
+
+  double get relativeDifference {
+    final firstScaled = first.num * second.den;
+    final secondScaled = second.num * first.den;
+    return (firstScaled - secondScaled).abs() / firstScaled;
+  }
 }
 
 class MultiplicationPair {
-  final int a, b, c, d;
-  MultiplicationPair(this.a, this.b, this.c, this.d);
+  final int firstBase;
+  final int firstRateTenths;
+  final int secondBase;
+  final int secondRateTenths;
 
-  int get firstProduct => a * b;
-  int get secondProduct => c * d;
+  const MultiplicationPair({
+    required this.firstBase,
+    required this.firstRateTenths,
+    required this.secondBase,
+    required this.secondRateTenths,
+  });
+
+  int get firstProduct => firstBase * firstRateTenths;
+  int get secondProduct => secondBase * secondRateTenths;
+
+  String get firstRateLabel => _formatRate(firstRateTenths);
+  String get secondRateLabel => _formatRate(secondRateTenths);
+
+  static String _formatRate(int tenths) {
+    final whole = tenths ~/ 10;
+    final decimal = tenths % 10;
+    return decimal == 0 ? '$whole' : '$whole.$decimal';
+  }
 }
 
 class AdditionSet {

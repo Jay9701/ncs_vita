@@ -31,11 +31,11 @@ class _FractionWidgetState extends State<FractionWidget> {
   }
 
   void _newQuestion() {
-    final cfg = getLevelConfig(widget.level);
+    final config = getFractionConfig(widget.level);
     _q = GameService.generateFractionPair(
-      minDiff: cfg.minDiff,
-      maxDiff: cfg.maxDiff,
-      maxVal: cfg.maxVal,
+      minDiff: config.minDiff,
+      maxDiff: config.maxDiff,
+      maxVal: config.maxValue,
     );
     setState(() {});
   }
@@ -44,9 +44,7 @@ class _FractionWidgetState extends State<FractionWidget> {
     if (_showResult) return; // 이미 결과 보여주는 중이면 중복 클릭 방지
 
     setState(() {
-      final a = _q.first.num / _q.first.den;
-      final b = _q.second.num / _q.second.den;
-      _isCorrect = selected == (a > b ? 0 : 1);
+      _isCorrect = selected == (_q.isFirstGreater ? 0 : 1);
       _selectedIndex = selected; // 1. 내가 누른 게 뭔지 저장
       _showResult = true; // 2. 이제 색깔 보여줘! 라고 신호 보냄
     });
@@ -59,7 +57,7 @@ class _FractionWidgetState extends State<FractionWidget> {
 
   @override
   Widget build(BuildContext context) {
-    Color? _getCardColor(int index) {
+    Color? getCardColor(int index) {
       if (!_showResult || _selectedIndex != index) {
         return null; // 아직 안 눌렀거나 내가 누른 게 아니면 투명
       }
@@ -69,25 +67,37 @@ class _FractionWidgetState extends State<FractionWidget> {
       return _isCorrect ? Colors.green : Colors.red;
     }
 
-    return Row(
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const SizedBox(width: 32),
-        Expanded(
-          child: QCard(
-            onTap: () => _onSelect(0),
-            borderColor: _getCardColor(0), // 여기서 실시간으로 색 결정
-            child: _FractionUi(num: _q.first.num, den: _q.first.den),
-          ),
+        Text(
+          '더 큰 값을 선택하세요',
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(width: 32),
-        Expanded(
-          child: QCard(
-            onTap: () => _onSelect(1),
-            borderColor: _getCardColor(1), // 여기서 실시간으로 색 결정
-            child: _FractionUi(num: _q.second.num, den: _q.second.den),
-          ),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            const SizedBox(width: 16),
+            Expanded(
+              child: QCard(
+                onTap: () => _onSelect(0),
+                borderColor: getCardColor(0),
+                child: _FractionUi(num: _q.first.num, den: _q.first.den),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: QCard(
+                onTap: () => _onSelect(1),
+                borderColor: getCardColor(1),
+                child: _FractionUi(num: _q.second.num, den: _q.second.den),
+              ),
+            ),
+            const SizedBox(width: 16),
+          ],
         ),
-        const SizedBox(width: 32),
       ],
     );
   }

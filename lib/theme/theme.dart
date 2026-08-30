@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:ncs_vita/theme/colors.dart';
 import 'package:ncs_vita/theme/font.dart';
 
 class AppTheme {
-  static const _lightBg = Color(0xFFF6F8FB);
-  static const _darkBg = Color(0xFF201F1E);
-
   static ThemeData light(double fontScale) {
     final scheme =
         ColorScheme.fromSeed(
-          seedColor: const Color(0xFF60A5FA),
+          seedColor: LightMode.primary,
           brightness: Brightness.light,
         ).copyWith(
-          primary: const Color(0xFF3B82F6),
-          secondary: const Color(0xFFFACC15),
-          error: const Color(0xFFF87171),
-          surface: const Color(0xFFFFFFFF),
-          onSurface: const Color(0xFF1F2937),
-          shadow: const Color(0xFFCBE0F1),
-          outline: const Color(0xFFA2ABC9),
+          primary: LightMode.primary,
+          onPrimary: Colors.white,
+          secondary: LightMode.secondary,
+          onSecondary: LightMode.textPrimary,
+          error: LightMode.error,
+          onError: Colors.white,
+          surface: LightMode.surface,
+          onSurface: LightMode.textPrimary,
+          shadow: LightMode.disabled,
+          outline: LightMode.disabled,
         );
 
     final base = ThemeData.light();
@@ -26,15 +27,15 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: scheme,
-      scaffoldBackgroundColor: _lightBg,
+      scaffoldBackgroundColor: LightMode.background,
 
       cardTheme: const CardThemeData(
-        color: Color(0xFFFFFFFF),
+        color: LightMode.surface,
         elevation: 0,
         margin: EdgeInsets.zero,
       ),
 
-      dividerColor: const Color(0x0F000000),
+      dividerColor: LightMode.divider,
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ButtonStyle(
@@ -47,11 +48,11 @@ class AppTheme {
             }
             return scheme.primary;
           }),
-          foregroundColor: WidgetStateProperty.all(const Color(0xFF1F2937)),
+          foregroundColor: WidgetStateProperty.all(Colors.white),
         ),
       ),
 
-      textTheme: buildTextTheme(base.textTheme, fontScale, dark: false),
+      textTheme: buildTextTheme(base.textTheme, fontScale, isDark: false),
       extensions: [AppFont.create(fontScale, false)],
     );
   }
@@ -59,16 +60,19 @@ class AppTheme {
   static ThemeData dark(double fontScale) {
     final scheme =
         ColorScheme.fromSeed(
-          seedColor: const Color(0xFFEAB308),
+          seedColor: DarkMode.primary,
           brightness: Brightness.dark,
         ).copyWith(
-          primary: const Color(0xFFEAB308),
-          secondary: const Color(0xFF3B82F6),
-          error: const Color(0xFFEF4444),
-          surface: const Color(0xFF302F2F),
-          onSurface: const Color(0xFFE5E7EB),
-          shadow: const Color(0xFF000000),
-          outline: const Color(0xFF1F2937),
+          primary: DarkMode.primary,
+          onPrimary: DarkMode.background,
+          secondary: DarkMode.secondary,
+          onSecondary: DarkMode.background,
+          error: DarkMode.error,
+          onError: Colors.white,
+          surface: DarkMode.surface,
+          onSurface: DarkMode.textPrimary,
+          shadow: Colors.black,
+          outline: DarkMode.disabled,
         );
 
     final base = ThemeData.dark();
@@ -77,15 +81,15 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: scheme,
-      scaffoldBackgroundColor: _darkBg,
+      scaffoldBackgroundColor: DarkMode.background,
 
       cardTheme: const CardThemeData(
-        color: Color(0xFF171A21),
+        color: DarkMode.surface,
         elevation: 0,
         margin: EdgeInsets.zero,
       ),
 
-      dividerColor: const Color(0x1AFFFFFF),
+      dividerColor: DarkMode.divider,
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ButtonStyle(
@@ -98,39 +102,34 @@ class AppTheme {
             }
             return scheme.primary;
           }),
-          foregroundColor: WidgetStateProperty.all(const Color(0xFF111827)),
+          foregroundColor: WidgetStateProperty.all(DarkMode.background),
         ),
       ),
 
-      // ⭐ 여기
-      textTheme: buildTextTheme(base.textTheme, fontScale, dark: true),
+      textTheme: buildTextTheme(base.textTheme, fontScale, isDark: true),
       extensions: [AppFont.create(fontScale, true)],
     );
   }
 }
 
-TextTheme buildTextTheme(TextTheme base, double scale, {required bool dark}) {
-  // 1. 기본 색상 정의
-  final primaryText = dark ? const Color(0xFFE5E7EB) : const Color(0xFF1F2937);
-  final secondaryText = dark
-      ? const Color(0xFF9CA3AF)
-      : const Color(0xFF6B7280);
-
-  // 2. 포인트 색상 (앞서 설정하신 ColorScheme과 동기화)
-  final primaryPoint = const Color(0xFF60A5FA); // Blue (Light Primary)
-  final accentPoint = const Color(0xFFFACC15); // Yellow (Secondary)
-  final errorPoint = const Color(0xFFF87171); // Red (Error)
+TextTheme buildTextTheme(TextTheme base, double scale, {required bool isDark}) {
+  final primaryText = isDark ? DarkMode.textPrimary : LightMode.textPrimary;
+  final secondaryText = isDark
+      ? DarkMode.textSecondary
+      : LightMode.textSecondary;
+  final primaryPoint = isDark ? DarkMode.primary : LightMode.primary;
+  final accentPoint = isDark ? DarkMode.secondary : LightMode.secondary;
+  final errorPoint = isDark ? DarkMode.error : LightMode.error;
 
   return base.copyWith(
     // [Display] 점수나 큰 숫자 (포인트 컬러 적용)
     displayLarge: TextStyle(
       fontSize: 57 * scale,
       fontWeight: FontWeight.bold,
-      color: primaryPoint, // 메인 브랜드 컬러로 강조
-      letterSpacing: -0.25,
+      color: primaryPoint,
+      letterSpacing: 0,
     ),
 
-    // [Headline] 섹션 제목
     headlineMedium: TextStyle(
       fontSize: 28 * scale,
       fontWeight: FontWeight.bold,
@@ -142,7 +141,6 @@ TextTheme buildTextTheme(TextTheme base, double scale, {required bool dark}) {
       color: primaryText,
     ),
 
-    // [Title] 카드 제목이나 강조 텍스트 (Secondary 컬러 활용)
     titleLarge: TextStyle(
       fontSize: 22 * scale,
       fontWeight: FontWeight.w600,
@@ -151,18 +149,13 @@ TextTheme buildTextTheme(TextTheme base, double scale, {required bool dark}) {
     titleMedium: TextStyle(
       fontSize: 16 * scale,
       fontWeight: FontWeight.w600,
-      color: accentPoint, // 노란색 계열로 시선 집중 (예: 'Level 1')
+      color: accentPoint,
     ),
 
-    // [Body] 일반 본문 및 설명
     bodyLarge: TextStyle(fontSize: 18 * scale, color: primaryText),
     bodyMedium: TextStyle(fontSize: 16 * scale, color: primaryText),
-    bodySmall: TextStyle(
-      fontSize: 14 * scale,
-      color: secondaryText, // 연한 회색으로 부연 설명
-    ),
+    bodySmall: TextStyle(fontSize: 14 * scale, color: secondaryText),
 
-    // [Label] 버튼 및 에러 메시지
     labelLarge: TextStyle(
       fontSize: 14 * scale,
       fontWeight: FontWeight.bold,
@@ -171,7 +164,7 @@ TextTheme buildTextTheme(TextTheme base, double scale, {required bool dark}) {
     labelSmall: TextStyle(
       fontSize: 11 * scale,
       fontWeight: FontWeight.w500,
-      color: errorPoint, // 작은 경고나 에러 문구용
+      color: errorPoint,
     ),
   );
 }

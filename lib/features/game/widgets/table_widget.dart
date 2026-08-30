@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:ncs_vita/features/game/services/game_service.dart';
 import 'package:ncs_vita/features/game/models/game_question.dart';
-import 'package:ncs_vita/features/game/models/level_config.dart';
-import 'package:ncs_vita/theme/components/q_card.dart';
+import 'package:ncs_vita/features/game/services/game_service.dart';
+import 'package:ncs_vita/features/game/widgets/number_pad.dart';
+import 'package:ncs_vita/theme/font.dart';
 
 class TableWidget extends StatefulWidget {
   final int level;
@@ -11,14 +11,14 @@ class TableWidget extends StatefulWidget {
   const TableWidget({super.key, required this.level, required this.onAnswered});
 
   @override
-  State<TableWidget> createState() => _CalculationGameWidgetState();
+  State<TableWidget> createState() => _TableWidgetState();
 }
 
-class _CalculationGameWidgetState extends State<TableWidget> {
-  late TableProblem _q;
-  int? _selectedIndex; // 유저가 방금 누른 카드 인덱스 (0 또는 1)
-  bool _showResult = false; // 정답/오답 색상을 보여줄지 여부
-  bool _isCorrect = false;
+class _TableWidgetState extends State<TableWidget> {
+  late TableProblem _problem;
+  final Map<TableHole, String> _inputs = {};
+  TableHole? _activeHole;
+  bool _isSubmitted = false;
 
   @override
   void initState() {
@@ -27,95 +27,222 @@ class _CalculationGameWidgetState extends State<TableWidget> {
   }
 
   void _newQuestion() {
-    final cfg = getLevelConfig(widget.level);
-    _q = GameService.generateTableProblem(3);
-    setState(() {});
+    _problem = GameService.generateTableProblem();
+    _inputs.clear();
+    _activeHole = _problem.holes.first;
+    _isSubmitted = false;
   }
 
-  void _onSelect(int selected) async {
-    // 다이얼 오픈
+  void _appendNumber(String number) {
+    if (_isSubmitted || _activeHole == null) return;
+    setState(() {
+      final current = _inputs[_activeHole] ?? '';
+      if (current.length < 6) _inputs[_activeHole!] = '$current$number';
+    });
   }
 
-  // 특정 좌표가 구멍인지 확인하는 헬퍼 함수
-  TableHole? _getHole(int r, int c) {
-    return _q.holes.where((h) => h.row == r && h.col == c).firstOrNull;
+  void _deleteNumber() {
+    if (_isSubmitted || _activeHole == null) return;
+    setState(() {
+      final current = _inputs[_activeHole] ?? '';
+      if (current.isNotEmpty) {
+        _inputs[_activeHole!] = current.substring(0, current.length - 1);
+      }
+    });
+  }
+
+  void _clearNumber() {
+    if (_isSubmitted || _activeHole == null) return;
+    setState(() => _inputs[_activeHole!] = '');
+  }
+
+  void _submit() {
+    final isReady = _problem.holes.every(
+      (hole) => (_inputs[hole] ?? '').isNotEmpty,
+    );
+    if (_isSubmitted || !isReady) return;
+
+    setState(() {
+      for (final hole in _problem.holes) {
+        hole.userInput = int.tryParse(_inputs[hole] ?? '');
+      }
+      _isSubmitted = true;
+    });
+
+    widget.onAnswered(_problem.isAllCorrect);
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) setState(_newQuestion);
+    });
+  }
+
+  TableHole? _getHole(int row, int column) {
+    for (final hole in _problem.holes) {
+      if (hole.row == row && hole.col == column) return hole;
+    }
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 1. 헤더 (열 라벨)
-          Row(
-            children: [
-              const Expanded(child: SizedBox()), // 행 라벨(구분) 자리 비우기
-              ..._q.table.cols.map(
-                (col) => Expanded(
-                  child: Center(
-                    child: Text(
-                      col,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
+    final compact = MediaQuery.sizeOf(context).width < 360;
+    final isReadyToSubmit = _problem.holes.every(
+      (hole) => (_inputs[hole] ?? '').isNotEmpty,
+    );
+
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(16, compact ? 12 : 20, 16, 12),
+            child: Column(
+              children: [
+                Text(
+                  _problem.table.title,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 4),
+                Text('단위: ${_problem.table.unit}'),
+                const SizedBox(height: 16),
+                _buildTable(context),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(16, 0, 16, compact ? 6 : 8),
+          child: SizedBox(
+            width: double.infinity,
+            height: compact ? 48 : 52,
+            child: ElevatedButton(
+              onPressed: isReadyToSubmit && !_isSubmitted ? _submit : null,
+              child: Text(
+                '입력',
+                style: TextStyle(
+                  fontSize: context.scaleText(compact ? 16 : 18),
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ],
+            ),
           ),
-          const SizedBox(height: 8),
-          const Divider(),
+        ),
+        NumberPad(
+          onNumberTap: _appendNumber,
+          onDelete: _deleteNumber,
+          onClear: _clearNumber,
+        ),
+      ],
+    );
+  }
 
-          // 2. 데이터 행들
-          ...List.generate(_q.table.rows.length, (rIdx) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  // 행 라벨 (예: 1회, 국어 등)
-                  Expanded(
-                    child: Text(
-                      _q.table.rows[rIdx],
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
+  Widget _buildTable(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final table = _problem.table;
 
-                  // 실제 데이터 셀들
-                  ...List.generate(_q.table.cols.length, (cIdx) {
-                    final hole = _getHole(rIdx, cIdx);
-                    final bool isHole = hole != null;
+    return Table(
+      border: TableBorder.all(color: colors.outline.withValues(alpha: 0.35)),
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      columnWidths: const {0: FlexColumnWidth(1.15)},
+      children: [
+        TableRow(
+          decoration: BoxDecoration(color: colors.surfaceContainerHighest),
+          children: [
+            _headerCell(context, '구분'),
+            ...table.cols.map((label) => _headerCell(context, label)),
+            _headerCell(context, table.rowSummaryLabel),
+          ],
+        ),
+        ...List.generate(table.rows.length, (rowIndex) {
+          return TableRow(
+            children: [
+              _labelCell(context, table.rows[rowIndex]),
+              ...List.generate(table.cols.length, (columnIndex) {
+                return _dataCell(
+                  context,
+                  _getHole(rowIndex, columnIndex),
+                  table.data[rowIndex][columnIndex],
+                );
+              }),
+              _dataCell(context, null, table.rowSummaries[rowIndex]),
+            ],
+          );
+        }),
+        TableRow(
+          decoration: BoxDecoration(color: colors.surfaceContainerHighest),
+          children: [
+            _headerCell(context, table.columnSummaryLabel),
+            ...table.columnSummaries.map(
+              (summary) => _dataCell(context, null, summary),
+            ),
+            _dataCell(context, null, table.grandSummary),
+          ],
+        ),
+      ],
+    );
+  }
 
-                    return Expanded(
-                      child: GestureDetector(
-                        child: Center(
-                          child: Text(
-                            isHole
-                                ? (hole.userInput?.toString() ??
-                                      "?") // 입력값 없으면 ?
-                                : _q.table.data[rIdx][cIdx].toString(),
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: isHole
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: isHole
-                                  ? Theme.of(context).primaryColor
-                                  : Colors.black87,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            );
-          }),
-        ],
+  Widget _headerCell(BuildContext context, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.labelLarge,
+      ),
+    );
+  }
+
+  Widget _labelCell(BuildContext context, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+      child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+    );
+  }
+
+  Widget _dataCell(BuildContext context, TableHole? hole, int value) {
+    final colors = Theme.of(context).colorScheme;
+    final isHole = hole != null;
+    final isActive = identical(hole, _activeHole);
+    final isCorrect = _isSubmitted && hole?.isCorrect == true;
+    final isWrong = _isSubmitted && hole?.isCorrect == false;
+    final displayValue = !isHole
+        ? '$value'
+        : isWrong
+        ? '${hole.originalValue}'
+        : (_inputs[hole] ?? '?');
+    final foreground = isCorrect
+        ? Colors.green
+        : isWrong
+        ? Colors.red
+        : isHole
+        ? colors.primary
+        : colors.onSurface;
+
+    return InkWell(
+      onTap: isHole && !_isSubmitted
+          ? () => setState(() => _activeHole = hole)
+          : null,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 46),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isCorrect
+              ? Colors.green.withValues(alpha: 0.12)
+              : isWrong
+              ? Colors.red.withValues(alpha: 0.12)
+              : isActive
+              ? Colors.orange.withValues(alpha: 0.12)
+              : null,
+          border: isActive ? Border.all(color: Colors.orange, width: 2) : null,
+        ),
+        child: Text(
+          displayValue,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: context.scaleText(16).clamp(13.0, 19.0),
+            fontWeight: isHole ? FontWeight.w700 : FontWeight.w500,
+            color: foreground,
+          ),
+        ),
       ),
     );
   }
